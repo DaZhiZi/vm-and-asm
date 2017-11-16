@@ -105,6 +105,56 @@ const drawDisplay = function(canvas, memory, displayStart) {
     context.putImageData(pixels, 0, 0)
 }
 
+const draw = function(register, memory, i, displayStart) {
+    let index = memory[i + 1]
+    let offset = memory[i + 2]
+    let p = []
+    let p1 = []
+    let p2 = []
+    // + 2是为了跳过开头的 jump 指令
+    index = index * 2 + 2
+    let char1 = memory[index]
+    let char2 = memory[index + 1]
+    if (offset > 28) {
+        offset += 256 - 32
+    }
+
+    let loadPixel = function(pixels, char) {
+        let p = []
+        while (p.length < 16) {
+            if (char >= 1) {
+                let n = char % 2
+                p.push(n)
+                char = Math.floor(char / 2)
+            } else {
+                p.push(0)
+            }
+        }
+        // 重新排序一次
+        pixels.push(p.slice(8, 16))
+        pixels.push(p.slice(0, 8))
+        return pixels
+    }
+    loadPixel(p, char1)
+    loadPixel(p, char2)
+    // 红色
+    let color = 61455
+    // displayStart
+    for (let j = 0; j < 4; j++) {
+        for (let k = 0; k < 8; k++) {
+            if (p[j][k] === 1) {
+                // 计算偏移量
+                let index = displayStart + (j * 1) + (k * 32) + offset
+                // 设置像素
+                memory[index] = color
+            }
+        }
+    }
+
+    i += 3
+    return i
+}
+
 const run = function(memory) {
     // register -> [pc, x, y, z, c1, f]
     let register = {
@@ -124,25 +174,36 @@ const run = function(memory) {
         0b0000010100000000: jump,
         0b0000011000000000: jumpWhenLess,
         0b0000011100000000: saveFromRegister,
+        0b0000111100000000: draw,
     }
     let canvas = GuaCanvas.new('#id-canvas')
-    let displayStart = instructionsMax - 10000
+    // let displayStart = instructionsMax - 10000
+    let displayStart = 256
     let i = register[pc]
 
     while (memory.length < instructionsMax) {
         memory.push(0)
     }
 
+    // 自动刷新屏幕 一分钟60次
+    setInterval(function() {
+        drawDisplay(canvas, memory, displayStart)
+    }, 1000 / 60)
+
     while (i < instructionsMax) {
         let key = memory[i]
         func = instructions[key]
         if (func) {
-            i = func(register, memory, i)
-            drawDisplay(canvas, memory, displayStart)
+            if (func === draw) {
+                i = func(register, memory, i, displayStart)
+            } else {
+                i = func(register, memory, i)
+            }
             register[pc] = i
         } else if (key === 0b1111111111111111) {
             log('stop')
             break
         }
     }
+
 }

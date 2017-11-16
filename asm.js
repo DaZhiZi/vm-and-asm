@@ -70,15 +70,13 @@ const assembler = function(asm_code) {
             let end = annotation_end(asm_code, i)
             i = end
         } else if (digits.indexOf(c) !== -1) {
-            let n, end
-            [n, end] = number_end(asm_code, i - 1)
+            let [n, end] = number_end(asm_code, i - 1)
             i = end
             ts.push(n)
         } else if (c === '@') {
-            let n, end
-            [n, end] = number_end(asm_code, i)
+            let [n, end] = number_end(asm_code, i)
             i = end
-            ts.append(n)
+            ts.push(n)
         } else if (letter.indexOf(c) !== -1) {
             let d = {
                 'pc': 0b0000000000000000,
@@ -95,10 +93,10 @@ const assembler = function(asm_code) {
                 'jump': 0b0000010100000000,
                 'jump_when_less': 0b0000011000000000,
                 'save_from_register': 0b0000011100000000,
+                'draw': 0b0000111100000000,
                 'halt': 0b1111111111111111,
             }
-            let s, end
-            [s, end] = var_end(asm_code, i - 1)
+            let [s, end] = var_end(asm_code, i - 1)
             i = end
             if (s in d) {
                 let t = d[s]

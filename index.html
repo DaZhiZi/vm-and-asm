@@ -20,27 +20,77 @@
         <script src='asm.js'></script>
     </head>
     <body>
-        <canvas id="id-canvas" width="100" height="100"></canvas>
+        <canvas id="id-canvas" width="32" height="16"></canvas>
 <script>
 
 const __main = function() {
     let asm_code = `
-        set y 55536                ; 左上角第一个像素
-        set z 202                  ; 用于斜方向设置像素，每两排设置一个
-        set x 61455                ; 红色
-        save_from_register x y     ; 设置像素点
-        add y z y
-        save_from_register x y     ; 设置像素点
-        add y z y
-        save_from_register x y     ; 设置像素点
-        add y z y
-        save_from_register x y     ; 设置像素点
-        add y z y
-        save_from_register x y     ; 设置像素点
-        halt
-        `
+    set y 256                  ; 左上角第一个像素
+    set z 66                   ; 用于斜方向设置像素，每两排设置一个
+    set x 61455                ; 红色
+    save_from_register x y     ; 设置像素点
+    add y z y
+    save_from_register x y     ; 设置像素点
+    add y z y
+    save_from_register x y     ; 设置像素点
+    add y z y
+    save_from_register x y     ; 设置像素点
+    add y z y
+    save_from_register x y     ; 设置像素点
+    halt
+    `
     let memory = assembler(asm_code)
-    run(memory)
+    // run(memory)
+
+    let asm_code_head = `
+    jump @32
+    64    0             ; .
+    32864 0             ; ,
+    0     0             ; space
+    18686 13312         ; $
+    11004 10752         ; ￥
+    65154 65024         ; 0
+    35070 32768         ; 1
+    58514 35840         ; 2
+    37546 17408         ; 3
+    7422  4096          ; 4
+    40530 12800         ; 5
+    30932 29184         ; 6
+    754   7680          ; 7
+    65170 65024         ; 8
+    7698  65024         ; 9
+    draw 0 0
+    draw 1 4
+    draw 2 8
+    draw 3 12
+    draw 4 16
+    draw 5 20
+    draw 6 24
+    draw 7 28
+    draw 8 32
+    draw 9 36
+    draw 10 40
+    draw 11 44
+    draw 12 48
+    draw 13 52
+    draw 14 56
+    halt
+    `
+    let markToken = function() {
+        let n = [
+            0b00101010,
+            0b11111100,
+            0b00101010,
+            0b00000000,
+        ]
+        let a = n[0] * Math.pow(2, 8) + n[1]
+        let b = n[2] * Math.pow(2, 8) + n[3]
+        log('a & b', a, b)
+        return [a, b]
+    }
+    let [a, b] = markToken()
+    let memory_head = assembler(asm_code_head)
+    run(memory_head)
 }
 
 
